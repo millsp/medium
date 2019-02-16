@@ -1,7 +1,20 @@
 /* eslint-disable fp/no-arguments */
-// Advanced TypeScript: Create Types for Curry and Ramda
+
+// Master Advanced TypeScript Patterns
+// Learn how to create types for curry and Ramda
 
 //////////////////////////////////////////////////////////////////////////////////////////
+
+// Despite the popularity of currying and the rise of functional programming
+// (and of TypeScript), it is still a hassle today to make use of curry and have
+// proper type checks. Even famous libraries like Ramda do not provide generic
+// types for their curry implementations (but we will). 
+
+// However, you need no functional programming background to follow this guide.
+// The guide is about currying but it is only a topic of my choice to teach you
+// advanced TypeScript techniques. You just need to have practised a bit with
+// TypeScript's primitive types. And by the end of this walk-through, you will
+// be a real TS wizard 🧙.
 
 // If you're a functional programmer, you are probably already using currying to
 // create powerful compositions and partial applications... And if you are a bit
@@ -9,33 +22,21 @@
 // shifting away from the declarative paradigm and solve problems faster, with
 // ease, and promote reusability within your codebase. 
 
-// However, you need no functional programming background to follow this guide.
-// The guide is about currying but it is only a topic of my choice to teach you
-// advanced TypeScript techniques that you will be able to use on your projects.
-// You just need to have practised a bit with TypeScript's primitive types. And
-// by the end of this walkthrough, you will be a real TS wizard 🧙. 
-
-// Despite the popularity of currying and the rise of functional programming
-// (and of TypeScript), it is still a hassle today to make use of curry and have
-// proper type checks. Even famous libraries like Ramda do not provide generic
-// types for their curry implementations (but we will).  
-
 // At the end of this guide, you will know how to create powerful types:
-const toCurry = (name: string, age: number, single: boolean, other: any) => true
+const toCurry = (name: string, age: number, single: boolean) => true
 const curried = curry(toCurry)
 
-// Type checks for variadic curry types
-const test0  = curried('Jane')('26', true)({}) 
+// Generic checks for variadic curry types
+const test0 = curried('Jane')('26', true)
 
 // And very powerful type checks for Ramda
-const test1  = curried(R.__, 26)('Jane', R.__)([true])(R.__)({})
+const test1 = curried(R.__, 26)('Jane', R.__)(R.__)([true])
 
-// In fact, Ramda does have some kind of mediocre types for curry. Mediocre?
-// These types are not generic and hard-coded, limiting us to a certain amount
-// of parameters. As of version 0.26.x, it only follows a maximum of 6 arguments
-// and does not allow us to use its famous placeholder feature very easily with
-// TypeScript. Why? It's hard, but we agree that we had enough and we're going
-// to fix this!
+// In fact, Ramda does have some kind of mediocre types for curry. These types
+// are not generic, hard-coded, limiting us to a certain amount of parameters.
+// As of version 0.26.x, it only follows a maximum of 6 arguments and does not
+// allow us to use its famous placeholder feature very easily with TypeScript.
+// Why? It's hard, but we agree that we had enough and we're going to fix this!
 
 // But before we start, let's make sure that you have a very basic understanding
 // of what currying is. Currying is the process of transforming a function that
@@ -47,18 +48,19 @@ const test1  = curried(R.__, 26)('Jane', R.__)([true])(R.__)({})
 const simpleAdd = (x: number, y: number) => x + y
 const test00    = simpleAdd(4, 6) // 10
 
-// The curried version of `simpleAdd` would be
+// The curried version of `simpleAdd` would be:
 const curriedAdd = (x: number) => (y: number) => x + y
 const test01     = curriedAdd(4)(2) // 6
 const test02     = curriedAdd(15)   // Function
 const test03     = test02(5)        // 20
 
 // In this guide, I will first explain how to create TypeScript types that work
-// with a standard curry implementation. Then, we will evolve them into more
-// advanced types that can allow curried functions to take 0 or more arguments.
-// And Finally, we will be able to use "gaps" that abstract the fact that we are
+// with a standard curry implementation.  
+// Then, we will evolve them into more advanced types that can allow curried
+// functions to take 0 or more arguments.  
+// And finally, we will be able to use "gaps" that abstract the fact that we are
 // not capable or willing to provide an argument at a certain moment.  
-// TL;DR: We will create types for "classic curry" and "advanced curry" (Ramda).
+// TL;DR: We will create types for "classic curry" & "advanced curry" (Ramda).
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
@@ -74,9 +76,9 @@ const test04: tuple = ['a', 1, ['b', 'c']]
 const test05 = (...args: tuple) => true
 const test06 = test05('a', 42, [])
 
-// But before starting to build our awesome curry types we're going to do a bit
-// of a warmup. We are going to create the first tools that we need to create
-// one of the most basic curry types. Let's go ahead.
+// But before starting to build our awesome curry types, we're going to do a bit
+// of a warmup. We are going to create the first tools that we need to build one
+// of the most basic curry types. Let's go ahead.
 
 // Maybe you could guess... We are going to work with tuple types a lot. We'll
 // use them as soon as we extracted the parameters from the "original" curried
@@ -85,7 +87,7 @@ const fn00  = (name: string, age: number, single: boolean) => true
 type test07 = Parameters<typeof fn00> // [string, number, boolean]
 
 // We extracted the parameter types from `fn00` thanks to the magic of
-// `Parameters`. Depending on your level, it might not be so magical:
+// `Parameters`. But it's not so magical when you recode it:
 type Params<F extends (...args: any[]) => any> = 
     F extends ((...args: infer A) => any)
     ? A
@@ -96,7 +98,7 @@ type test08 = Params<typeof fn00> // [string, number, boolean]
 
 // Good, it works just as `Parameters` does. Don't be scared of `infer`, it is
 // one of the most powerful keywords for building types. I will explain it in
-// more detail right after we practice some more:
+// more detail right after we practiced some more:
 
 // ---------------------------------------------------------------------------------------
 // HEAD
@@ -112,8 +114,8 @@ type Head<T extends any[]> =
     : never
 
 // Let's test it:
-type test9 = Head<[1, 2, string, number]> // 1
-type test10 = Head<Params<typeof fn00>> // string
+type test9  = Head<[1, 2, string, number]> // 1
+type test10 = Head<Params<typeof fn00>>    // string
 
 // ---------------------------------------------------------------------------------------
 // TAIL
@@ -121,13 +123,13 @@ type test10 = Head<Params<typeof fn00>> // string
 // A "classic curried" function consumes arguments one by one. This means that
 // when we consumed the `Head<Params<F>>`, we somehow need to move on to the
 // next parameter that hasn't been consumed yet. This is the purpose of `Tail`,
-// it conveniently removes the first entry that a tuple (might contain).
+// it conveniently removes the first entry that a tuple might contain.
 
 // As of TypeScript 3.4, we cannot "simply" remove the first entry of a tuple.
 // So, we are going to work around this problem by using one very valid trick:
 type Tail<T extends any[]> =
-    ((...args: T) => any) extends ((head: any, ...tail: infer U) => any)
-    ? U
+    ((...t: T) => any) extends ((_: any, ...tail: infer TT) => any)
+    ? TT
     : []
 
 // Using function types, we were able to tell TypeScript to infer the tuple that
@@ -136,7 +138,7 @@ type Tail<T extends any[]> =
 
 // Let's test it:
 type test11 = Tail<[1, 2, string, number]> // [2, string, number]
-type test12 = Tail<Params<typeof fn00>> // [number, boolean]
+type test12 = Tail<Params<typeof fn00>>    // [number, boolean]
 type test13 = Tail<test12>                 // [boolean]
 
 // ---------------------------------------------------------------------------------------
@@ -151,10 +153,10 @@ type HasTail<T extends any[]> =
     : true
 
 // Let's test it:
-type params = [string, number, object]
-type test14 = HasTail<params>             // true,  [string, number, object]
-type test15 = HasTail<Tail<params>>       // true,  [        number, object]
-type test16 = HasTail<Tail<Tail<params>>> // false, [                object]
+type params = [1, 2, string]
+type test14 = HasTail<params>             // true,  [1, 2, string]
+type test15 = HasTail<Tail<params>>       // true,  [   2, string]
+type test16 = HasTail<Tail<Tail<params>>> // false, [      string]
 
 // ---------------------------------------------------------------------------------------
 
@@ -173,7 +175,7 @@ type test16 = HasTail<Tail<Tail<params>>> // false, [                object]
 //   I like to think of a type as if it was a function, but for types. It has an
 //   input, which are types (called generics) and has an output. The output
 //   depends on the "logic" of a type, and `extends` is that block of logic,
-//   similar to an `if` clause.
+//   similar to an `if` clause (or ternary).
 //
 // - `infer`:  
 //   It is the magnifying glass of TypeScript, a beautiful inspecting tool that
@@ -181,10 +183,10 @@ type test16 = HasTail<Tail<Tail<params>>> // false, [                object]
 
 // I think you understand both `extends` & `type` well and this is why we are
 // going to practice a bit more with `infer`. We're going to extract types that
-// are contained inside of different generic types, this is how you do it:
+// are contained inside of different generic types. This is how you do it:
 
 // ---------------------------------------------------------------------------------------
-// Extract a property's type from an object `O`
+// Extract a property's type from an object
 
 type ObjectInfer<O> =
     O extends { a: infer A }
@@ -205,8 +207,8 @@ type FunctionInfer<F> =
     : never         // If false
 
 // Let's test it:
-const fn01  = (a: number, b: string) => true
-type test19 = FunctionInfer<typeof fn01> // [[number, string], boolean]
+const fn01  = (a: number, b: any) => true
+type test19 = FunctionInfer<typeof fn01> // [[number, any], boolean]
 
 // ---------------------------------------------------------------------------------------
 // Extract generic types from a class or an interface
@@ -229,8 +231,8 @@ type ArrayInfer<T> =
     : never
 
 // Let's test it:
-const array = [1, 'hello', new Promise(() => {})]
-type test21 = ArrayInfer<typeof array> // (string | number | Promise<{}>)
+const array = [0, 'data', 1, 'data']
+type test21 = ArrayInfer<typeof array> // string | number
 
 // ---------------------------------------------------------------------------------------
 // Extract types from a tuple
@@ -272,9 +274,9 @@ type CurryV0<P extends any[], R> =
         
 // If `HasTail` reports `false`, it means that all the parameters were consumed
 // and that it is time to return the return type `R` from the original function.
-// Otherwise, there's parameters left to consume, and we recurse within our type.
-// Recurse? Yes, `CurryV0` describes a function that has a return type of
-// `CurryV0` as long as there is a `Tail` of parameters (`HasTail<P> extends true`).
+// Otherwise, there's parameters left to consume, and we recurse within our
+// type.  Recurse? Yes, `CurryV0` describes a function that has a return type of
+// `CurryV0` as long as there is a `Tail` (`HasTail<P> extends true`).
 
 // This is as simple as it is. Here is the proof, without any implementation:
 declare function curryV0<P extends any[], R>(f: (...args: P) => R): CurryV0<P, R>
@@ -289,8 +291,8 @@ const curried04 = curried03('Jane')  // CurryV0<[number, boolean], boolean>
 const curried05 = curried04(26)      // CurryV0<[boolean], boolean>
 const test24    = curried05(true)    // boolean
 
-// And of course, type hints now work for an unlimited amount of parameters 🎉:
-const test25    = curried02('Jane')('26')(true) // error
+// And of course, type hints work for an unlimited amount of parameters 🎉:
+const test25 = curried02('Jane')('26')(true) // error
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
@@ -323,8 +325,8 @@ const test28 = curried07('Jane', 26, 'JJ')(26, 'JJ') // should error
 
 // In fact there is a big design problem because we said that we would force
 // taking a single `arg0`. Somehow, we are going to need to keep track of the
-// arguments that are consumed at a time. So, we will first get rid of `arg0`.
-// And since we're at it, we are going to start tracking consumed parameters:
+// arguments that are consumed at a time. So, we will first get rid of `arg0`
+// and start tracking consumed parameters
 type CurryV2<P extends any[], R> =
     <T extends any[]>(...args: T) =>
         HasTail<P> extends true
@@ -386,9 +388,9 @@ type test29 = Last<[1, 2, 3, 4]> // 4
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
-// Where were we? Ah, we said that we needed tools in order to track arguments.
-// It means that we need to know what parameter types we can take, which ones
-// have been consumed and which ones are the next to come. Let's get started:
+// Where were we? We said that we needed tools in order to track arguments. It
+// means that we need to know what parameter types we can take, which ones have
+// been consumed and which ones are the next to come. Let's get started:
 
 // ---------------------------------------------------------------------------------------
 // LENGTH
@@ -427,15 +429,15 @@ type test35 = Prepend<number, [1, 2]> // [number, 1, 2]
 // In `Length`'s examples, we manually increased a counter. So `Prepend` is the
 // ideal candidate to be the base of a counter. Let's see how it would work:
 type test36 = [any, any, any]
-type test37 = Length<test36>                 // 3
-type test38 = Length<Prepend<any, test36>>   // 4
+type test37 = Length<test36>               // 3
+type test38 = Length<Prepend<any, test36>> // 4
 
 // ---------------------------------------------------------------------------------------
 // DROP
 
 // It takes a tuple `T` and drops the first `N` entries. To do so we are going
 // to use the same techniques we used in `Last` and our brand new counter type:
-type Drop<N extends number, T extends any[], I extends any[]=[]> = {
+type Drop<N extends number, T extends any[], I extends any[] = []> = {
     0: Drop<N, Tail<T>, Prepend<any, I>>
     1: T
 }[
@@ -477,7 +479,7 @@ type CurryV3<P extends any[], R> =
         : CurryV2<Drop<Length<T>, P>, R>
 
 // What did we do here?  
-// First, `Drop<Length<T>, P>` means that we remove the consumed parameters out.
+// First, `Drop<Length<T>, P>` means that we remove consumed parameters out.
 // Then, if the length of `Drop<Length<T>, P>` is not equal to `0`, our curry
 // type has to continue recursing with the dropped parameters until...  
 // Finally, when all of the parameters were consumed, the `Length` of the
@@ -494,7 +496,7 @@ type CurryV3<P extends any[], R> =
 
 // It requires TS to re-check a type `X` against a type `Y`, and type `Y` will
 // only be enforced if it fails. This way, we're able to stop TS's complaints:
-type Cast<X, Y> = X extends Y ? X : Y;
+type Cast<X, Y> = X extends Y ? X : Y
 
 // Let's test it:
 type test41 = Cast<[string], any>    // [string]
@@ -509,9 +511,9 @@ type CurryV4<P extends any[], R> =
         ? R
         : CurryV4<Cast<Drop<Length<T>, P>, any[]>, R>
 
-// Remember earlier, when we lost the type checks because whe started tracking
-// intaken parameters with `T extends any[]`? Well it has been fixed by casting
-// `T` to `Partial<P>`. We added a constraint thanks to `Cast<T, Partial<P>>`!
+// Remember earlier, when we lost the type checks because we started tracking
+// consumed parameters with `T extends any[]`? Well it has been fixed by casting
+// `T` to `Partial<P>`. We added a constraint with `Cast<T, Partial<P>>`!
 
 // Let's test it:
 declare function curryV4<P extends any[], R>(f: (...args: P) => R): CurryV4<P, R>
@@ -519,9 +521,9 @@ declare function curryV4<P extends any[], R>(f: (...args: P) => R): CurryV4<P, R
 const toCurry08 = (name: string, age: number, single: boolean) => true
 const curried08 = curryV4(toCurry08)
 
-const test43    = curried08('Jane')(26)(true) // boolean
-const test44    = curried08('Jane', 26, true) // boolean
-const test45    = curried08('Jane', 26)(4000) // type checks
+const test43 = curried08('Jane')(26)(true) // boolean
+const test44 = curried08('Jane', 26, true) // boolean
+const test45 = curried08('Jane', 26)(4000) // error
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
@@ -539,15 +541,19 @@ type CurryV5<P extends any[], R> =
         ? CurryV5<Cast<Drop<Length<T>, P>, any[]>, R>
         : R
 
-// Lets test it:
+// When all non-rest parameters were consumed, `Drop<Length<T>, P>` can only
+// match `[...any[]]`. Thanks to this, we used `[any, ...any[]]` as a condition
+// to end the recursion.
+
+// Let's test it:
 declare function curryV5<P extends any[], R>(f: (...args: P) => R): CurryV5<P, R>
 
 const toCurry09 = (name: string, age: number, single: boolean, ...nicknames: string[]) => true
 const curried09 = curryV5(toCurry09)
         
-const test47    = curried09('Jane', 26)(true, 'JJ', 'Jini') // boolean
-const test48    = curried09('Jane')(26, true, 'JJ', 'Jini') // boolean
-const test49    = curried09('Jane')(26)(true, 'JJ', 900000) // error
+const test47 = curried09('Jane', 26)(true, 'JJ', 'Jini') // boolean
+const test48 = curried09('Jane')(26, true, 'JJ', 'Jini') // boolean
+const test49 = curried09('Jane')(26)(true, 'JJ', 900000) // error
 
 // Everything works like a charm 🌹. You just got yourself a smart, generic,
 // variadic curry type. You will be able play with it very soon... But before
@@ -571,7 +577,6 @@ const test49    = curried09('Jane')(26)(true, 'JJ', 900000) // error
 // capable or willing to provide an argument at a certain moment. Let's start by
 // defining what a placeholder is. We can directly grab the one from Ramda:
 import R from 'ramda'
-import { type } from 'os'
 
 type __ = typeof R.__
 
@@ -610,10 +615,10 @@ type test51   = Pos<Next<iterator>> // 3
 type test52   = Pos<Prev<iterator>> // 1
 
 // ---------------------------------------------------------------------------------------
-// Iterator (`[...any[]]`)
+// Iterator
 
-// It creates an iterator (our count type) at a position defined by `Index` and
-// is able to start off from another iterator's position by using `From`:
+// It creates an iterator (our counter type) at a position defined by `Index`
+// and is able to start off from another iterator's position by using `From`:
 type Iterator<Index extends number = 0, From extends any[] = [], I extends any[] = []> = {
     0: Iterator<Index, Next<From>, Next<I>>
     1: From
@@ -633,15 +638,15 @@ type test56 = Pos<test54>         // 5
 
 // Good, so what do we do next? We need to analyze whenever a placeholder is
 // passed as an argument. From there, we will be able to tell if an parameter
-// has been "skipped", "postponed". Here's some more tools for this purpose:
+// has been "skipped" or "postponed". Here's some more tools for this purpose:
 
 // ---------------------------------------------------------------------------------------
 // REVERSE
 
 // Believe it or not, we still lack a few basic tools. `Reverse` is going to
 // give us the freedom that we needed. It takes a tuple `T` and turns it the
-// other way around into a tuple `R` thanks to our brand new iteration types:
-type Reverse<T extends any[], R extends any[] = [], I extends any[] = Iterator> = {
+// other way around into a tuple `R`, thanks to our brand new iteration types:
+type Reverse<T extends any[], R extends any[] = [], I extends any[] = []> = {
     0: Reverse<T, Prepend<T[Pos<I>], R>, Next<I>>
     1: R
 }[
@@ -701,10 +706,10 @@ type test63 = GapOf<[__, __], [number, string], [], Iterator<1>> // [string]
 // ---------------------------------------------------------------------------------------
 // GAPSOF
 
-// Don't get impressed by this one, it calls `Gap` over `T1` & `T2` and stores
+// Don't be impressed by this one, it calls `Gap` over `T1` & `T2` and stores
 // the results in `TN`. And when it's done, it concats the results from `TN` to
 // the parameter types that are left to be taken (for the next function call):
-type GapsOf<T1 extends any[], T2 extends any[], TN extends any[] = [], I extends any[] = Iterator> = {
+type GapsOf<T1 extends any[], T2 extends any[], TN extends any[] = [], I extends any[] = []> = {
     0: GapsOf<T1, T2, Cast<GapOf<T1, T2, TN, I>, any[]>, Next<I>>
     1: Concat<TN, Cast<Drop<Pos<I>, T2>, any[]>>
 }[
@@ -725,6 +730,7 @@ type test66 = GapsOf<[__ , __ , __ ], []>                                 // sho
 type PartialGaps<T extends any[]> = {
     [K in keyof T]?: T[K] | __
 }
+
 // A mapped type allows one to iterate and alter properties of another type. In
 // this case, we altered `T` so that each entry can be of the placeholder type.
 // And thanks to `?`, we explained that each entry of `T` is optional. It means
@@ -765,9 +771,9 @@ declare function curryV6<P extends any[], R>(f: (...args: P) => R): CurryV6<P, R
 const toCurry10 = (name: 'Jane', age: 26, single: true) => true
 const curried10 = curryV6(toCurry10)
         
-const test69    = curried10(R.__, 26, R.__)('Jane', true)             // boolean
-const test70    = curried10(R.__, R.__, R.__)(R.__, 26, true)('Jane') // boolean
-const test71    = curried10('Jane', R.__, true)(R.__)(R.__)({})       // expected 26
+const test69 = curried10(R.__, 26, R.__)('Jane', true)             // boolean
+const test70 = curried10(R.__, R.__, R.__)(R.__, 26, true)('Jane') // boolean
+const test71 = curried10('Jane', R.__, true)(R.__)(R.__)({})       // expected 26
 
 // There is just a little problem, it seems like we're a bit ahead of Ramda! Our
 // type can understand very complex placeholder usages. In other words, Ramda's
@@ -775,17 +781,19 @@ const test71    = curried10('Jane', R.__, true)(R.__)(R.__)({})       // expecte
 const toCurry11 = (name: string, age: number, single: true, ...nicknames: string[]) => true
 const curried11 = curryV6(toCurry11)
 
-const test72    = curried11(R.__, 26, true)('Jane', 'JJ', 'Jini')         // boolean
-const test73    = curried11('Jane', 26, true, R.__)('Jane', R.__)('Jini') // boolean
+const test72 = curried11(R.__, 26)(R.__, true, 'JJ', R.__)('Jane', 'Jini') // boolean
+const test73 = curried11('Jane', 26, true, R.__)('JJ', R.__)('Jini')       // boolean
 
 // However, even if this looks perfectly correct, it will result in a complete
-// crash. This is why I opened a ticket with Ramda on Github, in the hope that
-// the types we've just created could one day work in harmony with the library.
+// crash. This happens because the implementation of Ramda's curry does not deal
+// well with combinations of placeholders and rest parameters. This is why I
+// opened a ticket with Ramda on Github, in the hope that the types we've just
+// created could one day work in harmony with the library.
 
-// This is very cute, but we have one last problem to solve: parameter hints.  
-// I don't know for you, but I use parameter hints a lot. It is very useful to
-// know the names of the parameters that are dealt with in the IDE. The version
-// above does not allow for these kind of hints. Here is the fix:
+// This is very cute, but we have one last problem to solve: parameter hints. I
+// don't know for you, but I use parameter hints a lot. It is very useful to
+// know the names of the parameters that you're dealing with. The version above
+// does not allow for these kind of hints. Here is the fix:  
 type Curry<F extends ((...args: any) => any)> =
     <T extends any[]>(...args: Cast<Cast<T, Gaps<Parameters<F>>>, any[]>) =>
         GapsOf<T, Parameters<F>> extends [any, ...any[]]
@@ -807,19 +815,19 @@ const test74    = curried12(R.__)(R.__, 'Doe')(/* Ctrl+Shift+Space */)
 
 // There's just one thing, when using gaps, we'll lose the name of a parameter.
 
-// A word for IntelliJ users: You won't be able to benefit from proper hints. I
-// recommend that you switch to Visual Studio Code soon (it was brought by
-// Microsoft after all). And it is community-driven, free, much (much) faster,
-// and supports keybindings for IntelliJ users.
+// A word for IntelliJ users only: You won't be able to benefit from proper
+// hints. I recommend that you switch to Visual Studio Code as soon as possible
+// (it was brought by Microsoft after all). And it is community-driven, free,
+// much (much) faster, and supports key bindings for IntelliJ users.
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
 // Finally, I would like to inform you that there is a current proposal for
 // variadic types at https://github.com/Microsoft/TypeScript/issues/5453. What
-// you learned here is not going to become obsolete, this proposal aims to ease
-// the most common tuple type manipulations, so it is a very good thing for us.
-// In a close future, it will enable easier tuple concatenations like the
-// `Append`, `Concat` & `Prepend` we've built, as well as destructuring and a
+// you've learned here is not going to become obsolete, this proposal aims to
+// ease the most common tuple type manipulations, so it is a very good thing for
+// us. In a close future, it will enable easier tuple concatenations like the
+// `Append`, `Concat`, and `Prepend` we've built, as well as destructuring and a
 // better way to describe variable function parameters.
 
 // That's it. I know that it's a lot to digest at once so that's why I released
@@ -828,11 +836,13 @@ const test74    = curried12(R.__)(R.__, 'Doe')(/* Ctrl+Shift+Space */)
 // you become more comfortable with the different techniques 📖.
 // https://github.com/pirix-gh/medium/blob/master/src/types-curry-ramda/index.ts
 
+//////////////////////////////////////////////////////////////////////////////////////////
 
 // High-five 👏 if you enjoyed this guide, and stay tuned for my next article!
 
-//////////////////////////////////////////////////////////////////////////////////////////
+// Thanks for reading. And if you have any questions or remarks, you are more
+// than welcome to leave a comment.
 
-// This is my first article, so don't hesitate to give me your feedback.
+//////////////////////////////////////////////////////////////////////////////////////////
 
 export default {}
