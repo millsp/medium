@@ -20,7 +20,7 @@
 // If you're a functional programmer, you are probably already using currying to
 // create powerful compositions and partial applications... And if you are a bit
 // behind, it's time to take the leap into functional programming, start
-// shifting away from the declarative paradigm and solve problems faster, with
+// shifting away from the imperative paradigm and solve problems faster, with
 // ease, and promote reusability within your codebase. 
 
 // At the end of this guide, you will know how to create powerful types:
@@ -853,11 +853,11 @@ const test74    = curried12(R.__)(R.__, 'Doe')(/* Ctrl+Shift+Space */)
 // LAST WORDS ////////////////////////////////////////////////////////////////////////////
 
 // Finally, I would like to inform you that there is a current proposal for
-// variadic types at https://github.com/Microsoft/TypeScript/issues/5453. What
+// variadic types https://github.com/Microsoft/TypeScript/issues/5453. What
 // you've learned here is not going to become obsolete, this proposal aims to
 // ease the most common tuple type manipulations, so it is a very good thing for
 // us. In a close future, it will enable easier tuple concatenations like the
-// `Append`, `Concat`, and `Prepend` we've built, as well as destructuring and a
+// `Append`, `Concat`, and `Prepend` we've built, as well as destructuring, and a
 // better way to describe variable function parameters.
 
 // That's it. I know that it's a lot to digest at once so that's why I released
