@@ -1,11 +1,11 @@
 {
-  "name": "medium",
+  "name": "types-curry-ramda",
   "version": "1.0.0",
   "description": "",
   "homepage": "http://streamhive.io",
   "repository": {
     "type": "git",
-    "url": "https://github.com/streamhive/true-promise"
+    "url": "https://github.com/pirix-gh/medium/tree/master/src/types-curry-ramda"
   },
   "scripts": {},
   "author": "Pierre-Antoine Mills",
