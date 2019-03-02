@@ -87,8 +87,8 @@
     //    "out": "" /* DEPRECATED. Use outFile */
   },
   "include": [
-    "./src/**/*",
-    "./tst/**/*"
+    "./**/src/**/*",
+    "./**/tst/**/*"
   ],
   "exclude": [
     "./node_modules/**/*",
