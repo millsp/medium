@@ -11,14 +11,14 @@
   "author": "Pierre-Antoine Mills",
   "license": "AGPL-3.0-only",
   "devDependencies": {
-    "@types/node": "^10.12.18",
-    "@types/ramda": "^0.25.47",
-    "@typescript-eslint/parser": "^1.1.0",
-    "eslint": "^5.12.1",
+    "@types/node": "^10.12.29",
+    "@types/ramda": "^0.25.51",
+    "@typescript-eslint/parser": "^1.4.2",
+    "eslint": "^5.15.0",
     "eslint-plugin-fp": "^2.3.0",
     "eslint-plugin-react": "^7.12.4",
     "ts-node": "^8.0.2",
-    "typescript": "^3.4.0-dev.20190302"
+    "typescript": "^3.3.1"
   },
   "dependencies": {
     "ramda": "^0.26.1",
