@@ -489,7 +489,7 @@ type CurryV3<P extends any[], R> =
     <T extends any[]>(...args: T) =>
         Length<Drop<Length<T>, P>> extends 0
         ? R
-        : CurryV2<Drop<Length<T>, P>, R>
+        : CurryV3<Drop<Length<T>, P>, R>
 
 // What did we do here?  
 
@@ -762,7 +762,8 @@ type PartialGaps<T extends any[]> = {
 // that we no longer have the need to use `Partial` on the tracked parameters.
 
 // Let's test it:
-type test67 = PartialGaps<[number, string]> // [(number | __ | undefined)?, (string | __ | undefined)?]
+type test67 = PartialGaps<[number, string]> 
+// [(number | __ | undefined)?, (string | __ | undefined)?]
 
 // Ugh, we never said that we could take `undefined`! We just wanted to be able
 // to omit a part of `T`. It is a side effect of using the `?` operator. But it
@@ -775,7 +776,8 @@ type CleanedGaps<T extends any[]> = {
 type Gaps<T extends any[]> = CleanedGaps<PartialGaps<T>>
 
 // Let's test it:
-type test68 = Gaps<[number, string]> // [(number | __)?, (string | __)?]
+type test68 = Gaps<[number, string]> 
+// [(number | __)?, (string | __)?]
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // CURRY V6 //////////////////////////////////////////////////////////////////////////////
