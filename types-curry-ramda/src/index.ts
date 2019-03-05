@@ -4,6 +4,46 @@
 // Learn how to create types for curry and Ramda
 
 //////////////////////////////////////////////////////////////////////////////////////////
+// UPDATES ///////////////////////////////////////////////////////////////////////////////
+
+// ---------------------------------------------------------------------------------------
+// 5 March 2019
+
+// I have done a few (minimal) updates to maintain compatibility with TS 3.4.
+// What kind of updates? I you run this on TS 3.4, you should see an error:
+
+type Test00<T1 extends any[], T2 extends any[]> =
+    Reverse<Reverse<T1>, T2>
+
+// It happens when TS decides that types become too complex to compute (ie).
+// The solution is to compute the types that cause problems step by step:
+
+type Test01<T1 extends any[], T2 extends any[]> =
+    Reverse<Reverse<T1> extends infer R ? Cast<R, any[]> : never, T2>
+
+// This way, `Reverse<T1>` is computed into `R` and passed on to `Reverse`.
+
+// ---------------------------------------------------------------------------------------
+// 4 March 2019
+
+// I did load tests on these types to prove that they're production-ready:
+
+// 101319K: For an empty file
+// 121135K: For the tool types
+
+// From here, I pile up series of different load tests:
+// 121643K (3.89s): https://gist.github.com/pirix-gh/d817d53dcbfa562efcac16762cfe4fea
+// 129241K (3.68s): https://gist.github.com/pirix-gh/fc2e04fd66d0d6597748f8e50992c31f
+// 128527K (4.20s): https://gist.github.com/pirix-gh/5d7d90cafa5cb58395b5f24a4346b477
+// 127571K (4.05s): https://gist.github.com/pirix-gh/b05f62c455404ecf046ea86a7cd6d21c
+
+// And finally, I doubled all the previous tests:
+// 144528K (4.57s): https://gist.github.com/pirix-gh/93e78bfc9ec82633ee324ce76a2b9b86
+
+// And to conclude, I removed Ramda types (leaving functions only)
+// 126674K (4.50s): https://gist.github.com/pirix-gh/fcb4fbacd538a7865fe8c3cf5ff3df00
+
+//////////////////////////////////////////////////////////////////////////////////////////
 // INTRODUCTION //////////////////////////////////////////////////////////////////////////
 
 // Despite the popularity of currying and the rise of functional programming
@@ -487,9 +527,9 @@ type toConsume = Drop<Length<consumed>, parameters> // [boolean, string[]]
 // previous version of curry, the one that had a broken `Tail`:
 type CurryV3<P extends any[], R> =
     <T extends any[]>(...args: T) =>
-        Length<Drop<Length<T>, P>> extends 0
+        Length<Drop<Length<T>, P> extends infer DT ? Cast<DT, any[]> : never> extends 0
         ? R
-        : CurryV3<Drop<Length<T>, P>, R>
+        : CurryV3<Drop<Length<T>, P> extends infer DT ? Cast<DT, any[]> : never, R>
 
 // What did we do here?  
 
@@ -522,9 +562,9 @@ type test42 = Cast<[string], number> // number
 // And this is our previous curry, but without any complaint this time:
 type CurryV4<P extends any[], R> =
     <T extends any[]>(...args: Cast<T, Partial<P>>) =>
-        Length<Cast<Drop<Length<T>, P>, any[]>> extends 0
+        Length<Drop<Length<T>, P> extends infer DT ? Cast<DT, any[]> : never> extends 0
         ? R
-        : CurryV4<Cast<Drop<Length<T>, P>, any[]>, R>
+        : CurryV4<Drop<Length<T>, P> extends infer DT ? Cast<DT, any[]> : never, R>
 
 // Remember earlier, when we lost the type checks because we started tracking
 // consumed parameters with `T extends any[]`? Well it has been fixed by casting
@@ -551,10 +591,11 @@ type test46   = Length<restargs> // number
 // Because rest parameters can be unlimited, TS's best guess is that the length
 // of our tuple is a `number`, it's kind of clever! So, we cannot make use of
 // `Length` while dealing with rest parameters. Don't be sad, it's not so bad:
+
 type CurryV5<P extends any[], R> =
     <T extends any[]>(...args: Cast<T, Partial<P>>) =>
         Drop<Length<T>, P> extends [any, ...any[]]
-        ? CurryV5<Cast<Drop<Length<T>, P>, any[]>, R>
+        ? CurryV5<Drop<Length<T>, P> extends infer DT ? Cast<DT, any[]> : never, R>
         : R
 
 // When all the non-rest parameters are consumed, `Drop<Length<T>, P>` can only
@@ -594,6 +635,7 @@ const test49 = curried09('Jane')(26)(true, 'JJ', 900000) // error
 // capable or willing to provide an argument at a certain moment. Let's start by
 // defining what a placeholder is. We can directly grab the one from Ramda:
 import R from 'ramda'
+import last from 'ramda/es/last'
 
 type __ = typeof R.__
 
@@ -686,7 +728,7 @@ type test59 = Reverse<[2, 1], [3, 4]> // [1, 2, 3, 4]
 // And from `Reverse`, `Concat` was born. It simply takes a tuple `T1` and
 // merges it with another tuple `T2`. It's kind of what we did in `test59`:
 type Concat<T1 extends any[], T2 extends any[]> =
-    Reverse<Cast<Reverse<T1>, any[]>, T2>
+    Reverse<Reverse<T1> extends infer R ? Cast<R, any[]> : never, T2>
 
 // Let's test it:
 type test60 = Concat<[1, 2], [3, 4]> // [1, 2, 3, 4]
@@ -733,8 +775,8 @@ type test63 = GapOf<[__, __], [number, string], [], Iterator<1>> // [string]
 // the results in `TN`. And when it's done, it concats the results from `TN` to
 // the parameter types that are left to be taken (for the next function call):
 type GapsOf<T1 extends any[], T2 extends any[], TN extends any[] = [], I extends any[] = []> = {
-    0: GapsOf<T1, T2, Cast<GapOf<T1, T2, TN, I>, any[]>, Next<I>>
-    1: Concat<TN, Cast<Drop<Pos<I>, T2>, any[]>>
+    0: GapsOf<T1, T2, GapOf<T1, T2, TN, I> extends infer G ? Cast<G, any[]> : never, Next<I>>
+    1: Concat<TN, Drop<Pos<I>, T2> extends infer D ? Cast<D, any[]> : never>
 }[
     Pos<I> extends Length<T1>
     ? 1 
@@ -788,7 +830,7 @@ type test68 = Gaps<[number, string]>
 type CurryV6<P extends any[], R> =
     <T extends any[]>(...args: Cast<T, Gaps<P>>) =>
         GapsOf<T, P> extends [any, ...any[]]
-        ? CurryV6<Cast<GapsOf<T, P>, any[]>, R>
+        ? CurryV6<GapsOf<T, P> extends infer G ? Cast<G, any[]> : never, R>
         : R
         
 // Let's test it:
@@ -828,7 +870,7 @@ const test73 = curried11('Jane', 26, true, R.__)('JJ', R.__)('Jini')       // bo
 type Curry<F extends ((...args: any) => any)> =
     <T extends any[]>(...args: Cast<Cast<T, Gaps<Parameters<F>>>, any[]>) =>
         GapsOf<T, Parameters<F>> extends [any, ...any[]]
-        ? Curry<(...args: Cast<GapsOf<T, Parameters<F>>, any[]>) => ReturnType<F>>
+        ? Curry<(...args: GapsOf<T, Parameters<F>> extends infer G ? Cast<G, any[]> : never) => ReturnType<F>>
         : ReturnType<F>
 
 declare function curry<F extends (...args: any) => any>(f: F): Curry<F>
