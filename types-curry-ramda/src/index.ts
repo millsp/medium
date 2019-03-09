@@ -11,13 +11,11 @@
 
 // I have done a few (minimal) updates to maintain compatibility with TS 3.4.
 // What kind of updates? I you run this on TS 3.4, you should see an error:
-
 type Test00<T1 extends any[], T2 extends any[]> =
-    Reverse<Reverse<T1>, T2>
+    Reverse<Cast<Reverse<T1>, any[]>, T2>
 
 // It happens when TS decides that types become too complex to compute (ie).
 // The solution is to compute the types that cause problems step by step:
-
 type Test01<T1 extends any[], T2 extends any[]> =
     Reverse<Reverse<T1> extends infer R ? Cast<R, any[]> : never, T2>
 
@@ -40,7 +38,7 @@ type Test01<T1 extends any[], T2 extends any[]> =
 // And finally, I doubled all the previous tests:
 // 144528K (4.57s): https://gist.github.com/pirix-gh/93e78bfc9ec82633ee324ce76a2b9b86
 
-// And to conclude, I removed Ramda types (leaving functions only)
+// And to conclude, I removed Ramda types (leaving functions only):
 // 126674K (4.50s): https://gist.github.com/pirix-gh/fcb4fbacd538a7865fe8c3cf5ff3df00
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -94,7 +92,6 @@ const curriedAdd = (x: number) => (y: number) => x + y
 const test01     = curriedAdd(4)(2) // 6
 const test02     = curriedAdd(15)   // Function
 const test03     = test02(5)        // 20
-
 
 // In this guide, I will first explain how to create TypeScript types that work
 // with a standard curry implementation.  
@@ -366,7 +363,7 @@ const toCurry07 = (name: string, age: number, ...nicknames: string[]) => true
 const curried07 = curryV1(toCurry07)
 const test27    = curried07('Jane', 26, 'JJ', 'Jini')
 
-// But we made a horrible mistake, the arguments are consumed very badly.
+// But we made a horrible mistake: the arguments are consumed very badly.
 // According to what we wrote, this will not produce a single TS error:
 const test28 = curried07('Jane', 26, 'JJ')(26, 'JJ') // should error
 
@@ -635,7 +632,6 @@ const test49 = curried09('Jane')(26)(true, 'JJ', 900000) // error
 // capable or willing to provide an argument at a certain moment. Let's start by
 // defining what a placeholder is. We can directly grab the one from Ramda:
 import R from 'ramda'
-import last from 'ramda/es/last'
 
 type __ = typeof R.__
 
