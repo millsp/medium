@@ -1,6 +1,6 @@
 /* eslint-disable fp/no-arguments */
 
-// Master Advanced TypeScript Patterns
+// How to master advanced TypeScript patterns
 // Learn how to create types for curry and Ramda
 
 //////////////////////////////////////////////////////////////////////////////////////////
