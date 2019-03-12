@@ -898,7 +898,7 @@ const test74    = curried12(R.__)(R.__, 'Doe')(/* Ctrl+Shift+Space */)
 // ease the most common tuple type manipulations, so it is a very good thing for
 // us. In a close future, it will enable easier tuple concatenations like the
 // `Append`, `Concat`, and `Prepend` we've built, as well as destructuring, and a
-// better way to describe variable function parameters.
+// better way to describe variable function parameters. :)
 
 // That's it. I know that it's a lot to digest at once so that's why I released
 // a developer version of this article. You can clone it, test it and change it
