@@ -237,6 +237,6 @@ const composed = compose(
     (name: string, age: number)         => ({name, age}),                 // receive parameters
 )
 
-const test10 = piped('Jane', 28) // {message: 'Welcome, Jane', date: 123456789}
+const test10 = composed('Jane', 28) // {message: 'Welcome, Jane', date: 123456789}
 
 export default {}
