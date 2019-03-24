@@ -145,12 +145,12 @@ type IteratorOfMap = {
     '47': Next<IteratorOfMap['46']>,
     '48': Next<IteratorOfMap['47']>,
     '49': Next<IteratorOfMap['48']>, // [any x 49]
-}
+} // More impressive than it is... This bulky thing should be kept separate.
 
-// It's a cache, so this will only load once and provide the usual `Iterator`.
-// This is a way to pre-compute our usual `Iterator`s and improve performance.
+// It's a cache, so it will only load once and provide the usual `Iterator`.  
+// It is a way to pre-compute our usual `Iterator`s and improve performance.  
 
-// So this is what we've used earlier to translate a string to a number. Thanks
+// So that's what we've used earlier to translate a string to a number. Thanks
 // to this, we can manipulate the positions of a counter that is a string type:
 type IteratorOf<Index extends string> = 
     IteratorOfMap[Index extends keyof IteratorOfMap ? Index : '_']
