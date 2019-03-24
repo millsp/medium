@@ -638,9 +638,6 @@ const test49 = curried09('Jane')(26)(true, 'JJ', 900000) // error
 // capable or willing to provide an argument at a certain moment. Let's start by
 // defining what a placeholder is. We can directly grab the one from Ramda:
 import R from 'ramda'
-import F from 'ramda/es/F'
-import T from 'ramda/es/T'
-import { ENETDOWN } from 'constants'
 
 type __ = typeof R.__
 
