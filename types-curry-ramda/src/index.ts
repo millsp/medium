@@ -7,12 +7,18 @@
 // UPDATES ///////////////////////////////////////////////////////////////////////////////
 
 // ---------------------------------------------------------------------------------------
+// 24 March 2019
+
+// I added a bonus for `pipe` and `compose` to learn more about complex types.
+
+// ---------------------------------------------------------------------------------------
 // 5 March 2019
 
 // I have done a few (minimal) updates to maintain compatibility with TS 3.4.
 // What kind of updates? I you run this on TS 3.4, you should see an error:
 type Test00<T1 extends any[], T2 extends any[]> =
     Reverse<Cast<Reverse<T1>, any[]>, T2>
+// Type instantiation is excessively deep and possibly infinite. ts(2589)
 
 // It happens when TS decides that types become too complex to compute (ie).
 // The solution is to compute the types that cause problems step by step:
@@ -129,7 +135,7 @@ type test07 = Parameters<typeof fn00> // [string, number, boolean]
 
 // We extracted the parameter types from `fn00` thanks to the magic of
 // `Parameters`. But it's not so magical when you recode it:
-type Params<F extends (...args: any[]) => any> = 
+export type Params<F extends (...args: any[][]) => any> = 
     F extends ((...args: infer A) => any)
     ? A
     : never
@@ -149,7 +155,7 @@ type test08 = Params<typeof fn00> // [string, number, boolean]
 // a tuple type, very convenient.  
 // So `Head` takes a tuple type `T` and returns the first type that it contains.
 // This way, we'll be able to know what argument type has to be taken at a time.
-type Head<T extends any[]> =
+export type Head<T extends any[]> =
     T extends [any, ...any[]]
     ? T[0]
     : never
@@ -168,7 +174,7 @@ type test10 = Head<Params<typeof fn00>>    // string
 
 // As of TypeScript 3.4, we cannot "simply" remove the first entry of a tuple.
 // So, we are going to work around this problem by using one very valid trick:
-type Tail<T extends any[]> =
+export type Tail<T extends any[]> =
     ((...t: T) => any) extends ((_: any, ...tail: infer TT) => any)
     ? TT
     : []
@@ -188,7 +194,7 @@ type test13 = Tail<test12>                 // [boolean]
 // A curried function will return a function until all of it's parameters have
 // been consumed. This condition is reached when we called `Tail` enough times
 // that there is no tail left, nothing's left to consume:
-type HasTail<T extends any[]> =
+export type HasTail<T extends any[]> =
     T extends ([] | [any])
     ? false
     : true
@@ -448,7 +454,7 @@ type test29 = Last<[1, 2, 3, 4]> // 4
 // to iterate freely (like a `for`). Mapped types can map from a type to
 // another, but they are too limiting for what we want to do. So, ideally, we
 // would like to be able to manipulate some sort of counter:
-type Length<T extends any[]> =
+export type Length<T extends any[]> =
     T['length']
 
 // Let's test it:
@@ -465,7 +471,7 @@ type test33 = Length<['a', 1, null, string]> // 4
 // PREPEND
 
 // It adds a type `E` at the top of a tuple `T` by using our first TS trick:
-type Prepend<E, T extends any[]> =
+export type Prepend<E, T extends any[]> =
     ((head: E, ...args: T) => any) extends ((...args: infer U) => any)
     ? U
     : T
@@ -485,7 +491,7 @@ type test38 = Length<Prepend<any, test36>> // 4
 
 // It takes a tuple `T` and drops the first `N` entries. To do so we are going
 // to use the same techniques we used in `Last` and our brand new counter type:
-type Drop<N extends number, T extends any[], I extends any[] = []> = {
+export type Drop<N extends number, T extends any[], I extends any[] = []> = {
     0: Drop<N, Tail<T>, Prepend<any, I>>
     1: T
 }[
@@ -548,7 +554,7 @@ type CurryV3<P extends any[], R> =
 
 // It requires TS to re-check a type `X` against a type `Y`, and type `Y` will
 // only be enforced if it fails. This way, we're able to stop TS's complaints:
-type Cast<X, Y> = X extends Y ? X : Y
+export type Cast<X, Y> = X extends Y ? X : Y
 
 // Let's test it:
 type test41 = Cast<[string], any>    // [string]
@@ -632,6 +638,9 @@ const test49 = curried09('Jane')(26)(true, 'JJ', 900000) // error
 // capable or willing to provide an argument at a certain moment. Let's start by
 // defining what a placeholder is. We can directly grab the one from Ramda:
 import R from 'ramda'
+import F from 'ramda/es/F'
+import T from 'ramda/es/T'
+import { ENETDOWN } from 'constants'
 
 type __ = typeof R.__
 
@@ -644,21 +653,21 @@ type __ = typeof R.__
 // POS (Position)
 
 // Use it to query the position of an iterator:
-type Pos<I extends any[]> =
+export type Pos<I extends any[]> =
     Length<I>
 
 // ---------------------------------------------------------------------------------------
 // NEXT (+1)
 
 // It brings the position of an iterator up:
-type Next<I extends any[]> =
+export type Next<I extends any[]> =
     Prepend<any, I>
 
 // ---------------------------------------------------------------------------------------
 // PREV (-1)
 
 // It brings the position of an iterator down:
-type Prev<I extends any[]> =
+export type Prev<I extends any[]> =
     Tail<I>
 
 // ---------------------------------------------------------------------------------------
@@ -674,7 +683,7 @@ type test52   = Pos<Prev<iterator>> // 1
 
 // It creates an iterator (our counter type) at a position defined by `Index`
 // and is able to start off from another iterator's position by using `From`:
-type Iterator<Index extends number = 0, From extends any[] = [], I extends any[] = []> = {
+export type Iterator<Index extends number = 0, From extends any[] = [], I extends any[] = []> = {
     0: Iterator<Index, Next<From>, Next<I>>
     1: From
 }[
@@ -704,7 +713,7 @@ type test56 = Pos<test54>         // 5
 // Believe it or not, we still lack a few basic tools. `Reverse` is going to
 // give us the freedom that we needed. It takes a tuple `T` and turns it the
 // other way around into a tuple `R`, thanks to our brand new iteration types:
-type Reverse<T extends any[], R extends any[] = [], I extends any[] = []> = {
+export type Reverse<T extends any[], R extends any[] = [], I extends any[] = []> = {
     0: Reverse<T, Prepend<T[Pos<I>], R>, Next<I>>
     1: R
 }[
@@ -723,7 +732,7 @@ type test59 = Reverse<[2, 1], [3, 4]> // [1, 2, 3, 4]
 
 // And from `Reverse`, `Concat` was born. It simply takes a tuple `T1` and
 // merges it with another tuple `T2`. It's kind of what we did in `test59`:
-type Concat<T1 extends any[], T2 extends any[]> =
+export type Concat<T1 extends any[], T2 extends any[]> =
     Reverse<Reverse<T1> extends infer R ? Cast<R, any[]> : never, T2>
 
 // Let's test it:
@@ -733,7 +742,7 @@ type test60 = Concat<[1, 2], [3, 4]> // [1, 2, 3, 4]
 // APPEND
 
 // Enabled by `Concat`, `Append` can add a type `E` at the end of a tuple `T`:
-type Append<E, T extends any[]> =
+export type Append<E, T extends any[]> =
     Concat<T, [E]>
 
 // Let's test it:
