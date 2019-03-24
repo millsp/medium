@@ -57,61 +57,12 @@ declare function impossible<Fns extends any[]>(...args: Reverse<Fns>): any
 // called `K`. It's not exactly a counter, but on mapped tuples, it behaves like
 // one. As it iterates, `K`'s values change from "0", "1", "2", "3"...  It's
 // nice, So we have some kind of index number... But it's a string, and we can't
-// do much with it. So we'll create a mapping to translate a string to a number:
-type NumberOfMap = {
-    '_': never,
-    '0': 0,
-    '1': 1,
-    '2': 2,
-    '3': 3,
-    '4': 4,
-    '5': 5,
-    '6': 6,
-    '7': 7,
-    '8': 8,
-    '9': 9,
-    '10': 10,
-    '11': 11,
-    '12': 12,
-    '13': 13,
-    '14': 14,
-    '15': 15,
-    '16': 16,
-    '17': 17,
-    '18': 18,
-    '19': 19,
-    '20': 20,
-    '21': 21,
-    '22': 22,
-    '23': 23,
-    '24': 24,
-    '25': 25,
-    '26': 26,
-    '27': 27,
-    '28': 28,
-    '29': 29,
-    '30': 30,
-    '31': 31,
-    '32': 32,
-    '33': 33,
-    '34': 34,
-    '35': 35,
-    '36': 36,
-    '37': 37,
-    '38': 38,
-    '39': 39,
-    '40': 40
-}
-
+// do much with it. So we'll create a type that translates a string to a number:
 type NumberOf<S extends string> =
-    NumberOfMap[S extends keyof NumberOfMap ? S : '_']
+    Length<IteratorOf<S>>
 
 // Let's test it:
 type test01 = NumberOf<'35'> // 35
-
-// It's not very elegant, but it comes with the advantage of patching a lack of
-// features. And in this case, it's gonna help us translate `K` to a number. So
-// here's another example to show what is does:
 
 // Mapped type that get indexes
 type Test02<T extends any[]> = {
@@ -141,50 +92,66 @@ type test03 = Test03<['a', 'b', 'c']> // [ 0,   1 ,  2 ]
 type IteratorOfMap = {
     '_': never,
     '0': Iterator<0>,
-    '1': Iterator<1>,
-    '2': Iterator<2>,
-    '3': Iterator<3>,
-    '4': Iterator<4>,
-    '5': Iterator<5>,
-    '6': Iterator<6>,
-    '7': Iterator<7>,
-    '8': Iterator<8>,
-    '9': Iterator<9>,
-    '10': Iterator<10>,
-    '11': Iterator<11>,
-    '12': Iterator<12>,
-    '13': Iterator<13>,
-    '14': Iterator<14>,
-    '15': Iterator<15>,
-    '16': Iterator<16>,
-    '17': Iterator<17>,
-    '18': Iterator<18>,
-    '19': Iterator<19>,
-    '20': Iterator<20>,
-    '21': Iterator<21>,
-    '22': Iterator<22>,
-    '23': Iterator<23>,
-    '24': Iterator<24>,
-    '25': Iterator<25>,
-    '26': Iterator<26>,
-    '27': Iterator<27>,
-    '28': Iterator<28>,
-    '29': Iterator<29>,
-    '30': Iterator<30>,
-    '31': Iterator<31>,
-    '32': Iterator<32>,
-    '33': Iterator<33>,
-    '34': Iterator<34>,
-    '35': Iterator<35>,
-    '36': Iterator<36>,
-    '37': Iterator<37>,
-    '38': Iterator<38>,
-    '39': Iterator<39>,
-    '40': Iterator<40>
+    '1': Next<IteratorOfMap['0']>, // Take previous and add
+    '2': Next<IteratorOfMap['1']>,
+    '3': Next<IteratorOfMap['2']>,
+    '4': Next<IteratorOfMap['3']>,
+    '5': Next<IteratorOfMap['4']>,
+    '6': Next<IteratorOfMap['5']>,
+    '7': Next<IteratorOfMap['6']>,
+    '8': Next<IteratorOfMap['7']>,
+    '9': Next<IteratorOfMap['8']>,
+
+    '10': Next<IteratorOfMap['9']>,
+    '11': Next<IteratorOfMap['10']>,
+    '12': Next<IteratorOfMap['11']>,
+    '13': Next<IteratorOfMap['12']>,
+    '14': Next<IteratorOfMap['13']>,
+    '15': Next<IteratorOfMap['14']>,
+    '16': Next<IteratorOfMap['15']>,
+    '17': Next<IteratorOfMap['16']>,
+    '18': Next<IteratorOfMap['17']>,
+    '19': Next<IteratorOfMap['18']>,
+
+    '20': Next<IteratorOfMap['19']>,
+    '21': Next<IteratorOfMap['20']>,
+    '22': Next<IteratorOfMap['21']>,
+    '23': Next<IteratorOfMap['22']>,
+    '24': Next<IteratorOfMap['23']>,
+    '25': Next<IteratorOfMap['24']>,
+    '26': Next<IteratorOfMap['25']>,
+    '27': Next<IteratorOfMap['26']>,
+    '28': Next<IteratorOfMap['27']>,
+    '29': Next<IteratorOfMap['28']>,
+
+    '30': Next<IteratorOfMap['29']>,
+    '31': Next<IteratorOfMap['30']>,
+    '32': Next<IteratorOfMap['31']>,
+    '33': Next<IteratorOfMap['32']>,
+    '34': Next<IteratorOfMap['33']>,
+    '35': Next<IteratorOfMap['34']>,
+    '36': Next<IteratorOfMap['35']>,
+    '37': Next<IteratorOfMap['36']>,
+    '38': Next<IteratorOfMap['37']>,
+    '39': Next<IteratorOfMap['38']>, // [any x 38]
+
+    '40': Next<IteratorOfMap['39']>,
+    '41': Next<IteratorOfMap['40']>,
+    '42': Next<IteratorOfMap['41']>,
+    '43': Next<IteratorOfMap['42']>,
+    '44': Next<IteratorOfMap['43']>,
+    '45': Next<IteratorOfMap['44']>,
+    '46': Next<IteratorOfMap['45']>,
+    '47': Next<IteratorOfMap['46']>,
+    '48': Next<IteratorOfMap['47']>,
+    '49': Next<IteratorOfMap['48']>, // [any x 49]
 }
 
-// Very Similar to the `NumberOfMap`, it maps string numbers to their iterator
-// counterpart. Thanks to this, we can manipulate positions of the counter `K`:
+// It's a cache, so this will only load once and provide the usual `Iterator`.
+// This is a way to pre-compute our usual `Iterator`s and improve performance.
+
+// So this is what we've used earlier to translate a string to a number. Thanks
+// to this, we can manipulate the positions of a counter that is a string type:
 type IteratorOf<Index extends string> = 
     IteratorOfMap[Index extends keyof IteratorOfMap ? Index : '_']
 
@@ -236,15 +203,15 @@ const test09 = pipe(
 //////////////////////////////////////////////////////////////////////////////////////////
 // LAST WORDS ////////////////////////////////////////////////////////////////////////////
 
-// `NumberOfMap` and `IteratorOfMap` are not the most beautiful types, I will
-// concede. But they help patch a lack of features when it comes to iteration.
-// They should help remove type overloads that are often a lot of copy-paste.
+// `IteratorOfMap` is not the most beautiful of types, I concede. But patches a
+// lack of features when it comes to iteration. So it can help removing variadic
+// type overloads that are often a lot of copy-paste (i.e shorter types). 
 
 // `Curry` and `Pipe` are two different variadic kinds. This is why they were
 // constructed differently, yet they both address variadic type solving.
 
 // I first thought that https://github.com/Microsoft/TypeScript/pull/30215 would
-// help me to build `pipe` but I could not find a usage for it after refection.
+// help me to build `pipe` but I could not find a usage for it after reflection.
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // BONUS++ ///////////////////////////////////////////////////////////////////////////////
