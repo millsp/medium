@@ -1,4 +1,4 @@
-import { Length, Tail, Cast, Prev, Pos, Reverse, Iterator, Next } from './index'
+import { Length, Tail, Cast, Prev, Pos, Reverse, Iterator, Next, Curry } from './index'
 
 // Pipe executes a sequence of functions one after the other in a way that each
 // functions input is the previous functions' output. Its type looks like this:
@@ -14,7 +14,7 @@ const piped = pipe(
 const test00 = piped('Jane', 28) // {message: 'Welcome, Jane', date: 123456789}
 
 // So `pipe` creates a function from a sequence of functions from `fA` to `fN`:
-declare function pipe<Fns extends any[]>(...args: Pipe<Fns>): 
+declare function pipe<Fns extends any[]>(...args: Piper<Fns>): 
     (...args: Parameters<First<Fns>>) => ReturnType<Last<Fns>>
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -28,10 +28,10 @@ type Last<T extends any[]> = T[Length<Tail<T>>]
 // An alias for an arrow function:
 type Arrow<P extends any[] = any, R extends any = any> = (...args: P) => R
 
-// Alias for a First tuple element:
+// Alias for a first tuple element:
 type First<T extends any[]> = T[0] 
 
-// Is number infinite (number) or not:
+// Is `N` numeric or of type `number`:
 type IsInfinite<N extends number> =
     Iterator<N> extends infer I 
     ? Length<Cast<I, any[]>> extends 0
@@ -44,7 +44,7 @@ type IsInfinite<N extends number> =
 
 // The technique used for `Curry` solves the problem of variadic types for
 // `Curry`. And since we have a different scenario, we'll use mapped types:
-type Pipe<Fns extends Arrow[]> = {
+type Piper<Fns extends Arrow[]> = {
     [K in keyof Fns]: PipeItem<Fns, K>
 }
 
@@ -55,29 +55,29 @@ declare function impossible<Fns extends any[]>(...args: Reverse<Fns>): any
 
 // Similar to a recursive (iterative) type, mapped types have a counter which is
 // called `K`. It's not exactly a counter, but on mapped tuples, it behaves like
-// one. As it iterates, `K`'s values change from "0", "1", "2", "3"...  It's
-// nice, So we have some kind of index number... But it's a string, and we can't
-// do much with it. So we'll create a type that translates a string to a number:
+// one. As it iterates, `K`'s values change from "0", "1", "2", "3"... Great. So
+// we have some kind of index number... But it's a string, and we can't do much
+// with it. So we'll create a type that translates a string to a number:
 type NumberOf<S extends string> =
     Length<IteratorOf<S>>
 
 // Let's test it:
 type test01 = NumberOf<'35'> // 35
 
-// Mapped type that get indexes
+// Mapped type that gets indexes
 type Test02<T extends any[]> = {
     [K in keyof T]: K
 }
 
-// Mapped type that get indexes
+// Mapped type that gets indexes
 type Test03<T extends any[]> = {
     [K in keyof T]: NumberOf<K>
 }
 
 type test02 = Test02<['a', 'b', 'c']> // ["0", "1", "2"]
-type test03 = Test03<['a', 'b', 'c']> // [ 0,   1 ,  2 ]
+type test03 = Test03<['a', 'b', 'c']> // [ 0 ,  1 ,  2 ]
 
-// So this gives us full control over the iteration performed by mapped types.
+// This will give us full control over the iteration performed by mapped types.
 // So now, when using mapped types, we'll know the position of each mapped item.
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -146,6 +146,8 @@ type IteratorOfMap = {
     '48': Next<IteratorOfMap['47']>,
     '49': Next<IteratorOfMap['48']>, // [any x 49]
 } // More impressive than it is... This bulky thing should be kept separate.
+// I did try to generate it dynamically, but doing so would limit us to '45'.
+// So this solution is more lightweight and allows to create lots of numbers.
 
 // It's a cache, so it will only load once and provide the usual `Iterator`.  
 // It is a way to pre-compute our usual `Iterator`s and improve performance.  
@@ -162,12 +164,12 @@ type test05 = Pos<Prev<IteratorOf<'30'>>> // 29
 // Remember, we started doing all of this because `K` is a string. Let's finish:
 type PipeItem<Fns extends Arrow[], K extends keyof Fns> =
     NumberOf<K> extends 0 
-    ? Fns[K] // If it's the first item, then do nothing to it. Otherwise, like them:
+    ? Fns[K] // If it's the first item, do nothing to it. Otherwise, pipe them:
     : (arg: ReturnType<Fns[Pos<Prev<IteratorOf<K>>>]>) => ReturnType<Fns[Pos<IteratorOf<K>>]>
     
 // What happened?
 // `Pos<Prev<IteratorOf<K>>>` is the previous item compared to the current one
-// `Pos<IteratorOf<K>>` is the current item, is the one being iterated on now
+// `Pos<IteratorOf<K>>` is the current item, the one being iterated right now
 
 // Both of those are positions that we queried `Fns` with. So what we did is:
 // (arg: ReturnType<PreviousFunction>) => ReturnType<CurrentFunction>
@@ -205,11 +207,16 @@ const test09 = pipe(
 
 // `IteratorOfMap` is not the most beautiful of types, I concede. But patches a
 // lack of features when it comes to iteration. So it can help removing variadic
-// type overloads that are often a lot of copy-paste (i.e shorter types). 
+// type overloads that are often a lot of copy-paste (i.e shorter types).
 
-// `Curry` and `Pipe` are two different variadic kinds. This is why they were
-// constructed differently, yet they both address variadic type solving.
+// And we can now know the position we're at when iterating with mapped types.
 
+// `curry` and `pipe` are two different variadic types. This is why they were
+// constructed differently, yet they both address variadic type solving. So
+// remember this: When operating on parameters, use mapped types like we did.
+// Otherwise, in other scenarios like `Curry`, use well-known recursive types.
+
+// Note:
 // I first thought that https://github.com/Microsoft/TypeScript/pull/30215 would
 // help me to build `pipe` but I could not find a usage for it after reflection.
 
@@ -218,10 +225,10 @@ const test09 = pipe(
 
 // We did not get so far and leave behind the cousin, `compose`. Because we
 // still iterate with mapped types, we just have to invert `pipe`'s logic:
-declare function compose<Fns extends any[]>(...args: Compose<Fns>): 
+declare function compose<Fns extends any[]>(...args: Composer<Fns>): 
     (...args: Parameters<Last<Fns>>) => ReturnType<First<Fns>>
 
-type Compose<Fns extends Arrow[]> = {
+type Composer<Fns extends Arrow[]> = {
     [K in keyof Fns]: ComposeItem<Fns, K>
 }
 
@@ -238,5 +245,42 @@ const composed = compose(
 )
 
 const test10 = composed('Jane', 28) // {message: 'Welcome, Jane', date: 123456789}
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// EXTRAS ////////////////////////////////////////////////////////////////////////////////
+
+// `pipe` and `compose` can also be created from standalone types that can be
+// composed with other types like `Curry`. So here we have `Pipe` & `Compose`:
+type Pipe<Fns extends Arrow[]> = (...args: Piper<Fns>) => 
+    (...args: Parameters<First<Fns>>) => ReturnType<Last<Fns>>
+
+type Compose<Fns extends Arrow[]> = (...args: Composer<Fns>) => 
+    (...args: Parameters<Last<Fns>>) => ReturnType<First<Fns>>
+
+// They can be combined with `Curry`:
+type CurriedPipe<Fns extends Arrow[]>    = Curry<ReturnType<Pipe<Fns>>>
+type CurriedCompose<Fns extends Arrow[]> = Curry<ReturnType<Compose<Fns>>>
+
+// Then we can declare them like so:
+declare function curriedPipe<Fns extends Arrow[]>(...fns: Piper<Fns>): CurriedPipe<Fns>
+declare function curriedCompose<Fns extends Arrow[]>(...fns: Composer<Fns>): CurriedCompose<Fns>
+
+// So let's test our curried pipe:
+const curriedPiped = curriedPipe(
+    (name: string, age: number)         => ({name, age}),                // receive parameters
+    (info: {name: string, age: number}) => `Welcome, ${info.name}`,      // receive previous return
+    (message: string)                   => ({message, date: Date.now()}) // receive previous return
+)
+
+const test11 = curriedPiped('Jane')(28)
+
+// Let's test a curried compose:
+const curriedComposed = curriedCompose(
+    (message: string)                   => ({message, date: Date.now()}), // receive previous return
+    (info: {name: string, age: number}) => `Welcome, ${info.name}`,       // receive previous return
+    (name: string, age: number)         => ({name, age})                  // receive parameters
+)
+
+const test12 = curriedComposed('Jane')(28)
 
 export default {}

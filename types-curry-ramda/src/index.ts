@@ -869,7 +869,7 @@ const test73 = curried11('Jane', 26, true, R.__)('JJ', R.__)('Jini')       // bo
 // don't know for you, but I use parameter hints a lot. It is very useful to
 // know the names of the parameters that you're dealing with. The version above
 // does not allow for these kind of hints. Here is the fix:  
-type Curry<F extends ((...args: any) => any)> =
+export type Curry<F extends ((...args: any) => any)> =
     <T extends any[]>(...args: Cast<Cast<T, Gaps<Parameters<F>>>, any[]>) =>
         GapsOf<T, Parameters<F>> extends [any, ...any[]]
         ? Curry<(...args: GapsOf<T, Parameters<F>> extends infer G ? Cast<G, any[]> : never) => ReturnType<F>>
