@@ -135,7 +135,7 @@ type test07 = Parameters<typeof fn00> // [string, number, boolean]
 
 // We extracted the parameter types from `fn00` thanks to the magic of
 // `Parameters`. But it's not so magical when you recode it:
-export type Params<F extends (...args: any[][]) => any> = 
+export type Params<F extends (...args: any[]) => any> = 
     F extends ((...args: infer A) => any)
     ? A
     : never
